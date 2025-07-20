@@ -1,0 +1,395 @@
+/* src/components/FinalStatus.css */
+
+.final-status-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+}
+
+.final-status-content {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Header del estado */
+.status-header {
+  padding: 40px 30px;
+  text-align: center;
+  color: white;
+  background: linear-gradient(135deg, #6c757d, #495057);
+}
+
+.status-header.success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.status-header.error {
+  background: linear-gradient(135deg, #dc3545, #e74c3c);
+}
+
+.status-header.pending {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.status-header.unknown {
+  background: linear-gradient(135deg, #6c757d, #495057);
+}
+
+.status-icon {
+  font-size: 4rem;
+  margin-bottom: 15px;
+}
+
+.status-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+}
+
+.status-message {
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Detalles de la transacción */
+.transaction-details,
+.product-info,
+.delivery-info,
+.next-steps {
+  padding: 25px 30px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.transaction-details h3,
+.product-info h3,
+.delivery-info h3,
+.next-steps h3 {
+  margin: 0 0 20px 0;
+  color: #343a40;
+  font-size: 1.2rem;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.detail-value {
+  font-weight: 600;
+  color: #343a40;
+  text-align: right;
+}
+
+/* Información del producto */
+.product-summary {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.product-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.product-info-text h4 {
+  margin: 0 0 5px 0;
+  color: #343a40;
+  font-size: 1.1rem;
+}
+
+.product-info-text p {
+  margin: 0 0 8px 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.product-price {
+  font-weight: bold;
+  color: #28a745;
+  font-size: 1.1rem;
+}
+
+.stock-update {
+  margin-top: 8px;
+}
+
+.stock-updating {
+  color: #ffc107;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.stock-updated {
+  color: #28a745;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Información de entrega */
+.delivery-details {
+  margin-bottom: 25px;
+}
+
+.delivery-details p {
+  margin: 8px 0;
+  color: #495057;
+}
+
+.delivery-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.timeline-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  font-size: 0.9rem;
+}
+
+.timeline-item.active .timeline-icon {
+  background: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+/* Mensajes específicos */
+.success-message,
+.error-message,
+.pending-message {
+  text-align: center;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 0;
+}
+
+.success-message {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.error-message {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.pending-message {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+.success-message h3,
+.error-message h3,
+.pending-message h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+}
+
+.success-message p,
+.error-message p,
+.pending-message p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Botones de acción */
+.action-buttons {
+  padding: 30px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  background: #f8f9fa;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary.success {
+  background: #28a745;
+}
+
+.btn-primary.error {
+  background: #dc3545;
+}
+
+.btn-primary.pending {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* Footer */
+.final-status-footer {
+  padding: 20px 30px;
+  text-align: center;
+  background: #f8f9fa;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.final-status-footer p {
+  margin: 5px 0;
+}
+
+.final-status-footer strong {
+  color: #495057;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .final-status-container {
+    padding: 15px;
+  }
+
+  .status-header {
+    padding: 30px 20px;
+  }
+
+  .status-icon {
+    font-size: 3rem;
+  }
+
+  .status-title {
+    font-size: 1.5rem;
+  }
+
+  .transaction-details,
+  .product-info,
+  .delivery-info,
+  .next-steps {
+    padding: 20px;
+  }
+
+  .product-summary {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .product-image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .detail-value {
+    text-align: left;
+    font-size: 1.1rem;
+  }
+}
+
+/* iPhone SE y pantallas muy pequeñas */
+@media (max-width: 375px) {
+  .final-status-container {
+    padding: 10px;
+  }
+
+  .status-header {
+    padding: 25px 15px;
+  }
+
+  .status-icon {
+    font-size: 2.5rem;
+  }
+
+  .status-title {
+    font-size: 1.3rem;
+  }
+
+  .transaction-details,
+  .product-info,
+  .delivery-info,
+  .next-steps {
+    padding: 15px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 15px 20px;
+    font-size: 0.95rem;
+  }
+}
