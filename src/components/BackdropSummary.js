@@ -16,16 +16,51 @@ function BackdropSummary({ isOpen, onClose }) {
 
   // Cargar datos del formulario de pago desde localStorage
   useEffect(() => {
-    const savedPaymentData = localStorage.getItem('payment_form_data');
-    if (savedPaymentData) {
-      try {
-        setPaymentData(JSON.parse(savedPaymentData));
-      } catch (error) {
-        console.error('Error parsing payment data:', error);
-        setPaymentData(null);
+    const loadPaymentData = () => {
+      const savedPaymentData = localStorage.getItem('payment_form_data');
+      console.log('🔍 BackdropSummary: Intentando cargar payment_form_data:', savedPaymentData ? 'Encontrado' : 'No encontrado');
+      
+      if (savedPaymentData) {
+        try {
+          const parsedData = JSON.parse(savedPaymentData);
+          console.log('✅ BackdropSummary: Datos de pago cargados:', parsedData);
+          setPaymentData(parsedData);
+        } catch (error) {
+          console.error('❌ BackdropSummary: Error parsing payment data:', error);
+          setPaymentData(null);
+        }
+      } else {
+        console.warn('⚠️ BackdropSummary: payment_form_data no encontrado en localStorage');
       }
-    }
-  }, []);
+    };
+
+    // Cargar datos inmediatamente
+    loadPaymentData();
+
+    // Si no se encontraron datos, intentar de nuevo después de un momento
+    // Esto maneja el caso donde el modal se cerró pero los datos aún no se han guardado
+    const retryTimeout = setTimeout(() => {
+      if (!paymentData) {
+        console.log('🔄 BackdropSummary: Reintentando cargar datos...');
+        loadPaymentData();
+      }
+    }, 200);
+
+    // Listener para cambios en localStorage (útil para debugging y múltiples pestañas)
+    const handleStorageChange = (e) => {
+      if (e.key === 'payment_form_data' && e.newValue) {
+        console.log('🔄 BackdropSummary: localStorage cambió, recargando datos...');
+        loadPaymentData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearTimeout(retryTimeout);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isOpen]); // Dependemos de isOpen para recargar cuando se abre el backdrop
 
   // Calcular montos según el PDF
   const calculateAmounts = () => {
@@ -396,7 +431,7 @@ function BackdropSummary({ isOpen, onClose }) {
         </div>
 
         {/* Información del cliente */}
-        {paymentData && (
+        {paymentData ? (
           <div className="summary-section">
             <h3>Datos de Entrega</h3>
             <div className="customer-info">
@@ -405,6 +440,17 @@ function BackdropSummary({ isOpen, onClose }) {
               <p><strong>Dirección:</strong> {paymentData.address}</p>
               <p><strong>Ciudad:</strong> {paymentData.city}, {paymentData.department}</p>
             </div>
+          </div>
+        ) : (
+          <div className="summary-section" style={{ 
+            background: '#fff3cd', 
+            borderLeft: '4px solid #ffc107',
+            marginBottom: '20px'
+          }}>
+            <h3 style={{ color: '#856404' }}>⚠️ Datos de Entrega</h3>
+            <p style={{ color: '#856404', margin: 0, fontSize: '0.9rem' }}>
+              Cargando datos del cliente...
+            </p>
           </div>
         )}
 
@@ -432,13 +478,24 @@ function BackdropSummary({ isOpen, onClose }) {
         </div>
 
         {/* Información de la tarjeta (sin datos sensibles) */}
-        {paymentData && (
+        {paymentData ? (
           <div className="summary-section">
             <h3>Método de Pago</h3>
             <div className="payment-method">
               <span>💳 **** **** **** {paymentData.cardNumber.slice(-4)}</span>
               <span>{paymentData.holderName}</span>
             </div>
+          </div>
+        ) : (
+          <div className="summary-section" style={{ 
+            background: '#fff3cd', 
+            borderLeft: '4px solid #ffc107',
+            marginBottom: '20px'
+          }}>
+            <h3 style={{ color: '#856404' }}>⚠️ Método de Pago</h3>
+            <p style={{ color: '#856404', margin: 0, fontSize: '0.9rem' }}>
+              Cargando información de la tarjeta...
+            </p>
           </div>
         )}
 
@@ -483,13 +540,15 @@ function BackdropSummary({ isOpen, onClose }) {
           <button 
             onClick={handlePayment} 
             className="btn-primary payment-button"
-            disabled={isProcessingPayment}
+            disabled={isProcessingPayment || !paymentData}
           >
             {isProcessingPayment ? (
               <>
                 <span className="loading-spinner-small"></span>
                 {paymentStep || 'Procesando...'}
               </>
+            ) : !paymentData ? (
+              '⏳ Cargando datos...'
             ) : (
               `💳 Pagar ${formatPrice(total)}`
             )}

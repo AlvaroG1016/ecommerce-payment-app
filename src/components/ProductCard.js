@@ -10,6 +10,7 @@ import './ProductCard.css';
 function ProductCard({ product }) {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hasImageError, setHasImageError] = useState(false);
   const { clearPaymentDataForNewProduct } = usePurchaseProgress();
 
   const handleBuyClick = () => {
@@ -27,22 +28,35 @@ function ProductCard({ product }) {
     setIsModalOpen(false);
   };
 
+  const handleImageError = (e) => {
+    if (!hasImageError) {
+      setHasImageError(true);
+      // Ocultar la imagen con error
+      e.target.style.display = 'none';
+    }
+  };
+
+  const handleImageLoad = (e) => {
+    // Asegurar que la imagen se muestre correctamente cuando carga
+    e.target.style.display = 'block';
+  };
+
   // Verificar si el producto está disponible
   const isAvailable = product.isActive && product.isAvailable && product.stock > 0;
 
   return (
     <>
       <div className="product-card">
-        <div className="product-image">
-          <img 
-            src={product.imageUrl} 
-            alt={product.name}
-            loading="lazy"
-            onError={(e) => {
-              // Si la imagen falla, mostrar placeholder
-              e.target.src = `https://via.placeholder.com/300x300/dee2e6/6c757d?text=${encodeURIComponent(product.name)}`;
-            }}
-          />
+        <div className={`product-image ${hasImageError ? 'image-error' : ''}`}>
+          {!hasImageError && (
+            <img 
+              src={product.imageUrl} 
+              alt={product.name}
+              loading="lazy"
+              onError={handleImageError}
+              onLoad={handleImageLoad}
+            />
+          )}
         </div>
         
         <div className="product-info">

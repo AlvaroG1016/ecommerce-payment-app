@@ -196,16 +196,37 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      // Guardar datos en localStorage (según el PDF)
-      localStorage.setItem('payment_form_data', JSON.stringify(formData));
-      
-      // Ir al siguiente paso (Summary con Backdrop)
-      dispatch(setCurrentStep(3));
-      onClose();
+      try {
+        // Guardar datos en localStorage de forma síncrona
+        const dataToSave = JSON.stringify(formData);
+        localStorage.setItem('payment_form_data', dataToSave);
+        
+        // Verificar que se guardó correctamente
+        const verification = localStorage.getItem('payment_form_data');
+        if (!verification) {
+          throw new Error('Error guardando datos en localStorage');
+        }
+        
+        console.log('✅ CreditCardModal: Datos guardados correctamente en localStorage');
+        console.log('📋 CreditCardModal: Datos guardados:', formData);
+        
+        // Cerrar modal primero
+        onClose();
+        
+        // Pequeño delay para asegurar que el modal se cierre completamente
+        setTimeout(() => {
+          // Ir al siguiente paso (Summary con Backdrop)
+          dispatch(setCurrentStep(3));
+        }, 100);
+        
+      } catch (error) {
+        console.error('❌ CreditCardModal: Error guardando datos:', error);
+        alert('Error guardando los datos. Por favor intente de nuevo.');
+      }
     }
   };
 

@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setCurrentStep } from '../store/index';
 import CreditCardModal from './CreditCardModal';
 import { formatPrice } from '../services/api';
+import './PaymentStep.css'; // Vamos a crear este archivo CSS
 
 function PaymentStep() {
   const dispatch = useDispatch();
@@ -65,60 +66,42 @@ function PaymentStep() {
     <div className="step-content">
       <h2>💳 Información de pago</h2>
       
-      <div style={{ 
-        background: '#f8f9fa', 
-        padding: '15px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        textAlign: 'left'
-      }}>
-        <h4 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>
+      <div className="product-summary">
+        <h4 className="product-summary-title">
           📦 {selectedProduct.name}
         </h4>
-        <p style={{ margin: '0 0 8px 0', color: '#7f8c8d', fontSize: '0.9rem' }}>
+        <p className="product-summary-description">
           {selectedProduct.description}
         </p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#27ae60' }}>
+        <div className="product-summary-details">
+          <span className="product-summary-price">
             {formatPrice(selectedProduct.price)}
           </span>
-          <span style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>
+          <span className="product-summary-stock">
             Stock: {selectedProduct.stock}
           </span>
         </div>
       </div>
 
-      <div style={{ textAlign: 'center' }}>
-        <p style={{ color: '#7f8c8d', marginBottom: '20px' }}>
+      <div className="payment-actions">
+        <p className="payment-status">
           {hasPaymentData ? 
             'Datos de pago guardados. Puedes modificarlos o continuar al resumen.' :
             'Completa la información de pago y entrega.'
           }
         </p>
         
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="payment-buttons">
           <button 
             onClick={() => dispatch(setCurrentStep(1))}
-            style={{ 
-              padding: '10px 16px', 
-              fontSize: '0.9rem',
-              minWidth: '140px'
-            }}
+            className="btn-secondary"
           >
             ← Cambiar producto
           </button>
           
           <button 
             onClick={handleOpenModal}
-            style={{ 
-              padding: '10px 16px', 
-              fontSize: '0.9rem',
-              background: '#4299e1',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              minWidth: '160px'
-            }}
+            className="btn-primary"
           >
             {hasPaymentData ? 
               '✏️ Modificar datos' : 
@@ -129,15 +112,7 @@ function PaymentStep() {
           {hasPaymentData && (
             <button 
               onClick={() => dispatch(setCurrentStep(3))}
-              style={{ 
-                padding: '10px 16px', 
-                fontSize: '0.9rem',
-                background: '#38a169',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                minWidth: '140px'
-              }}
+              className="btn-success"
             >
               Ir al resumen →
             </button>

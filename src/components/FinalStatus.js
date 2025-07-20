@@ -265,7 +265,17 @@ function FinalStatus() {
                 alt={selectedProduct.name}
                 className="product-image"
                 onError={(e) => {
-                  e.target.src = `https://via.placeholder.com/80x80/dee2e6/6c757d?text=${encodeURIComponent(selectedProduct.name)}`;
+                  // Solo cambiar una vez para evitar bucle
+                  if (!e.target.dataset.errorHandled) {
+                    e.target.dataset.errorHandled = 'true';
+                    const svgPlaceholder = `data:image/svg+xml;base64,${btoa(`
+                      <svg width="80" height="80" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100%" height="100%" fill="#e9ecef"/>
+                        <text x="40" y="50" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#6c757d">📦</text>
+                      </svg>
+                    `)}`;
+                    e.target.src = svgPlaceholder;
+                  }
                 }}
               />
               <div className="product-info-text">
