@@ -4,6 +4,8 @@ import { setCurrentStep } from "../store/index";
 import { formatPrice } from "../services/api";
 import "./BackdropSummary.css";
 import { apiService } from "../services/api";
+import { PaymentServiceAdapter} from "../services/payment.adapter";
+import { PaymentProviderService} from "../services/payment-service";
 
 function BackdropSummary({ isOpen, onClose }) {
   const dispatch = useDispatch();
@@ -14,7 +16,7 @@ function BackdropSummary({ isOpen, onClose }) {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [currentTransactionId, setCurrentTransactionId] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
-  const [paymentStep, setPaymentStep] = useState(""); 
+  const [paymentStep, setPaymentStep] = useState("");
 
   useEffect(() => {
     const loadPaymentData = () => {
@@ -70,14 +72,14 @@ function BackdropSummary({ isOpen, onClose }) {
       clearTimeout(retryTimeout);
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, [isOpen]); 
+  }, [isOpen]);
   const calculateAmounts = () => {
     if (!selectedProduct)
       return { productAmount: 0, baseFee: 0, deliveryFee: 0, total: 0 };
 
     const productAmount = selectedProduct.price;
-    const baseFee = selectedProduct.baseFee || 2000; 
-    const deliveryFee = 5000; 
+    const baseFee = selectedProduct.baseFee || 2000;
+    const deliveryFee = 5000;
     const total = productAmount + baseFee + deliveryFee;
 
     return { productAmount, baseFee, deliveryFee, total };
@@ -91,7 +93,7 @@ function BackdropSummary({ isOpen, onClose }) {
         customer: {
           name: paymentData.customerName,
           email: paymentData.email,
-          phone: paymentData.phone, 
+          phone: paymentData.phone,
         },
         productId: selectedProduct.id,
         quantity: 1,
@@ -104,7 +106,7 @@ function BackdropSummary({ isOpen, onClose }) {
           address: paymentData.address,
           city: paymentData.city,
           postalCode: paymentData.postalCode || "110111",
-          phone: paymentData.phone, 
+          phone: paymentData.phone,
         },
       };
 
@@ -152,7 +154,6 @@ function BackdropSummary({ isOpen, onClose }) {
     }
   };
 
-
   const processPayment = async (transactionId) => {
     if (!transactionId) {
       throw new Error("ID de transacción no válido");
@@ -181,10 +182,10 @@ function BackdropSummary({ isOpen, onClose }) {
       const paymentPayload = {
         cardNumber: String(paymentData.cardNumber),
         cardCvc: String(paymentData.cvc || paymentData.cardCvc),
-        cardExpMonth: month, 
+        cardExpMonth: month,
         cardExpYear: year,
         cardHolder: String(paymentData.holderName || paymentData.cardHolder),
-        installments: parseInt(paymentData.installments) || 1, 
+        installments: parseInt(paymentData.installments) || 1,
       };
       console.log("📤 Payload validado:", {
         cardNumber: "**** **** **** " + paymentPayload.cardNumber.slice(-4),
@@ -194,7 +195,14 @@ function BackdropSummary({ isOpen, onClose }) {
         cardHolder: paymentPayload.cardHolder,
       });
 
-      return await apiService.processPayment(transactionId, paymentPayload);
+  const result = await apiService.processPayment(
+        transactionId,
+        paymentPayload
+      );
+      const serviceProvider = PaymentProviderService
+      const resultProviderRequest = await new PaymentServiceAdapter(serviceProvider).processPayment(paymentPayload);
+
+      console.log("✅ Respuesta del proveedor de pagos:", resultProviderRequest);
     } catch (error) {
       console.error("❌ Error en processPayment:", error);
       throw error;
@@ -230,7 +238,7 @@ function BackdropSummary({ isOpen, onClose }) {
       throw new Error("ID de transacción no válido para hacer polling");
     }
 
-    const maxAttempts = 30; 
+    const maxAttempts = 30;
     let attempts = 0;
 
     return new Promise((resolve, reject) => {
@@ -292,7 +300,7 @@ function BackdropSummary({ isOpen, onClose }) {
             reject(error);
           }
         }
-      }, 2000); 
+      }, 2000);
     });
   };
 
@@ -311,8 +319,8 @@ function BackdropSummary({ isOpen, onClose }) {
     }
 
     setIsProcessingPayment(true);
-    setPaymentError(null); 
-    setCurrentTransactionId(null); 
+    setPaymentError(null);
+    setCurrentTransactionId(null);
 
     try {
       setPaymentStep("Creando transacción...");
@@ -361,7 +369,6 @@ function BackdropSummary({ isOpen, onClose }) {
           finalResponse: finalStatus,
         })
       );
-
 
       onClose();
 

@@ -5,15 +5,18 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
     "@testing-library/dom": "^10.4.0",
+    "axios": "^1.10.0",
+    "crypto-browserify": "^3.12.1",
+    "js-sha256": "^0.11.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-   "scripts": {
-       "start": "react-scripts start",
-"build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "eject": "react-scripts eject",
     "test": "react-scripts test",
     "test:coverage": "react-scripts test --coverage --watchAll=false",
