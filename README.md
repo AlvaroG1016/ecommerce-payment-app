@@ -1,70 +1,150 @@
-# Getting Started with Create React App
+#  E-commerce Frontend - Integración Wompi
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sistema de e-commerce desarrollado en React con integración directa a Wompi para procesamiento de pagos desde el frontend.
 
-## Available Scripts
+##  Tabla de Contenidos
 
-In the project directory, you can run:
+- [Características](#-características)
+- [Tecnologías](#-tecnologías)
+- [Instalación](#-instalación)
+- [Configuración](#-configuración)
+- [Arquitectura](#-arquitectura)
+- [Servicios](#-servicios)
+- [Componentes Principales](#-componentes-principales)
+- [Flujo de Pago](#-flujo-de-pago)
+- [Variables de Entorno](#-variables-de-entorno)
+- [Uso](#-uso)
+- [API Endpoints](#-api-endpoints)
+- [Testing](#-testing)
+- [Deployment](#-deployment)
+- [Contribución](#-contribución)
 
-### `npm start`
+##  Características
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- 🛍️ **Catálogo de productos** 
+- 💳 **Procesamiento de pagos 
+- 🏢 **Gestión de departamentos y ciudades de Colombia** con APIs externas
+- 📱 **Diseño responsive** para móvil y desktop
+- 🔄 **Polling automático** para pagos pendientes
+- 🧪 **Tarjetas de prueba** integradas para testing
+- 🔒 **Validación completa** de formularios
+- 📊 **Estados de pago en tiempo real**
+- 🎯 **Experiencia de usuario optimizada**
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠 Tecnologías
 
-### `npm test`
+### Frontend
+- **React** 18.x
+- **Redux Toolkit** - Estado global
+- **React Router** - Navegación
+- **CSS3** - Estilos personalizados
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+### Ubicaciones
+- **API Colombia** - Departamentos y ciudades
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🚀 Instalación
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Prerrequisitos
+- Node.js 16.x o superior
+- npm o yarn
+- Cuenta de Wompi (sandbox para desarrollo)
 
-### `npm run eject`
+### Clonar el repositorio
+```bash
+git clone <repository-url>
+cd ecommerce-frontend
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Instalar dependencias
+```bash
+npm install
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## Learn More
+## 🏗️ Arquitectura
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+src/
+├── components/           # Componentes React
+│   ├── CreditCardModal.js   # Modal de pago principal
+│   ├── PaymentStep.js       # Paso de pago
+│   ├── FinalStatus.js       # Estado final del pago
+│   └── ...
+├── services/            # Servicios y lógica de negocio
+│   ├── wompiService.js     # Integración con Wompi
+│   ├── paymentHandler.js   # Orquestador de pagos
+│   ├── api.js              # Cliente HTTP para backend
+│   └── colombiaLocations.js # Gestión de ubicaciones
+├── store/               # Redux store
+│   ├── index.js
+│   └── slices/
+└── styles/              # Archivos CSS
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 💳 Flujo de Pago
 
-### Code Splitting
+```mermaid
+graph TD
+    A[Seleccionar Producto] --> B[Llenar Datos de Pago]
+    B --> C[Crear Transacción Backend]
+    C --> D[Procesar Pago Wompi]
+    D --> E{Estado del Pago}
+    E -->|APPROVED| F[Pago Exitoso]
+    E -->|DECLINED| G[Pago Rechazado]
+    E -->|PENDING| H[Iniciar Polling]
+    H --> I{Estado Final?}
+    I -->|SI| F
+    I -->|NO| H
+    F --> J[Actualizar Stock]
+    G --> K[Mostrar Error]
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🔧 Variables de Entorno
 
-### Analyzing the Bundle Size
+| Variable | Descripción | Ejemplo |
+|----------|-------------|---------|
+| `REACT_APP_WOMPI_PUBLIC_KEY` | Llave pública de tercero para pagos | `pub_test_...` |
+| `REACT_APP_WOMPI_PRIVATE_KEY` | Llave privada de tercero para pagos | `prv_test_...` |
+| `REACT_APP_WOMPI_INTEGRITY_KEY` | Llave de integridad | `test_integrity_...` |
+| `REACT_APP_API_BASE_URL` | URL del backend | `http://localhost:3001/api` |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+##  Uso
 
-### Making a Progressive Web App
+### Desarrollo
+```bash
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Construcción
+```bash
+npm run build
+```
 
-### Advanced Configuration
+### Linting
+```bash
+npm run lint
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Deployment
+## 🧪 Testing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Tarjetas de prueba incluidas:
+- **VISA Aprobada**: `4242424242424242`
+- **VISA Rechazada**: `4000000000000002`
+- **Mastercard Aprobada**: `5555555555554444`
+- **Mastercard Rechazada**: `2223003122003222`
 
-### `npm run build` fails to minify
+### Datos de prueba:
+- **CVC**: `123`
+- **Fecha**: `12/2025`
+- **Titular**: `Test User`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 🚢 Deployment
+
+
+
+
