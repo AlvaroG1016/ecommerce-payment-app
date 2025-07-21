@@ -81,12 +81,11 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
   const [loadingCities, setLoadingCities] = useState(false);
 
   // ✅ NUEVO: Cargar departamentos cuando se abre el modal
-  useEffect(() => {
-    if (isOpen && departments.length === 0) {
-      loadDepartments();
-    }
-  }, [isOpen]);
-
+useEffect(() => {
+  if (isOpen && departments.length === 0) {
+    loadDepartments();
+  }
+}, [isOpen, departments.length]); // ✅
   // ✅ NUEVO: Función para cargar departamentos
   const loadDepartments = async () => {
     setLoadingDepartments(true);
@@ -144,7 +143,7 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
         }
       }
     }
-  }, [isOpen]);
+  }, [isOpen,departments.length]);
 
   const handleInputChange = (field, value) => {
     let processedValue = value;

@@ -66,7 +66,7 @@ function FinalStatus() {
     }, 500);
 
     return () => clearTimeout(timeout);
-  }, []);
+  }, [paymentResult]);
 
   // Actualizar stock si el pago fue exitoso
   useEffect(() => {
@@ -79,7 +79,7 @@ function FinalStatus() {
     if (shouldUpdateStock) {
       updateStock();
     }
-  }, [paymentResult, selectedProduct, stockUpdated]);
+  }, [paymentResult, selectedProduct, stockUpdated, updateStock]);
 
   const updateStock = async () => {
     if (!selectedProduct || isUpdatingStock) return;

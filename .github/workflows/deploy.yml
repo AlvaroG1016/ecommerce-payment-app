@@ -1,0 +1,48 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches:
+      - master  # Ejecuta el pipeline cuando haya un push a la rama principal
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod 
+    steps:
+    # Paso 1: Configurar AWS CLI con las credenciales almacenadas en GitHub Secrets
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1  # Especifica la región de tu bucket S3
+
+    # Paso 2: Instalar dependencias y construir el proyecto (si es una app de React)
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        npm install
+
+    - name: Build the project
+      run: |
+        npm run build  
+        
+    # Asumiendo que la salida está en la carpeta 'dist'
+
+    # Paso 3: Eliminar los archivos existentes en el bucket S3
+    - name: Delete existing files in S3 bucket
+      run: |
+        aws s3 rm s3://ecommerce-paymente-app --recursive  
+      # Borra todo lo que está en el bucket
+
+    # Paso 4: Subir los archivos generados (por ejemplo, en dist) al bucket S3
+    - name: Upload new files to S3
+      run: |
+        aws s3 sync ./build/ s3://ecommerce-paymente-app  --delete  # Sincroniza y elimina archivos antiguos si es necesario
+
+    # Paso 5: Confirmación de despliegue
+    - name: Deployment successful
+      run: echo "Deployment to S3 completed successfully!"

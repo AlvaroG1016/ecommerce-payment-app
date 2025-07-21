@@ -14,7 +14,6 @@ import BackdropSummary from "./components/BackdropSummary";
 import PaymentStep from "./components/PaymentStep";
 import FinalStatus from "./components/FinalStatus";
 import { usePurchaseProgress } from "./hooks/useLocalStorage";
-import { formatPrice, apiService } from "./services/api";
 import "./App.css";
 import config from './config';
 
@@ -40,7 +39,6 @@ function App() {
     progress,
     updateProgress,
     clearProgress,
-    clearPaymentDataForNewProduct,
     isProgressValid,
   } = usePurchaseProgress();
 
@@ -58,19 +56,19 @@ function App() {
       dispatch(setCurrentStep(progress.currentStep));
       console.log("🔄 Progreso restaurado:", progress);
     }
-  }, []); // Sin dependencias para que solo se ejecute una vez
+  }, [dispatch, isProgressValid, progress]);
 
   // Sincronizar step con localStorage solo cuando cambie currentStep
   useEffect(() => {
     updateProgress({ currentStep });
-  }, [currentStep]); // Solo currentStep como dependencia
+  }, [currentStep, updateProgress]);
 
   // Sincronizar producto seleccionado con localStorage
   useEffect(() => {
     if (selectedProduct) {
       updateProgress({ selectedProduct });
     }
-  }, [selectedProduct]); // Solo selectedProduct como dependencia
+  }, [selectedProduct, updateProgress]);
 
   // Abrir Backdrop cuando llegamos al paso 3
   useEffect(() => {
@@ -85,7 +83,7 @@ function App() {
       }
       setIsBackdropOpen(false);
     }
-  }, [currentStep]);
+  }, [currentStep, isBackdropOpen]);
 
   // Handler para cambio de página
   const handlePageChange = (newPage) => {
