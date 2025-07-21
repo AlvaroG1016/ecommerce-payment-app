@@ -1,12 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-// Mock del apiService ANTES de importar el slice
-jest.mock('../services/api', () => ({
-  apiService: {
-    request: jest.fn(),
-  },
-}));
-
 // Importar después del mock
 import productsSlice, {
   fetchProducts,
@@ -20,6 +13,13 @@ import productsSlice, {
 } from '../store/slices/productsSlice';
 
 import { apiService } from '../services/api';
+
+// Mock del apiService ANTES de importar el slice
+jest.mock('../services/api', () => ({
+  apiService: {
+    request: jest.fn(),
+  },
+}));
 
 describe('productsSlice', () => {
   let store;

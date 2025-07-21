@@ -5,6 +5,9 @@ import { configureStore } from '@reduxjs/toolkit';
 import ProductCard from '../components/ProductCard';
 import { setSelectedProduct } from '../store/slices/productsSlice';
 
+import { usePurchaseProgress } from '../hooks/useLocalStorage';
+import { formatPrice } from '../services/api';
+
 // Mock de los módulos externos
 jest.mock('../hooks/useLocalStorage', () => ({
   usePurchaseProgress: jest.fn(() => ({
@@ -28,9 +31,6 @@ jest.mock('../services/api', () => ({
 }));
 
 jest.mock('../components/ProductCard.css', () => ({}));
-
-import { usePurchaseProgress } from '../hooks/useLocalStorage';
-import { formatPrice } from '../services/api';
 
 // Mock del reducer para Redux
 const mockProductsReducer = (state = {}, action) => {
