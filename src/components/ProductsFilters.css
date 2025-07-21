@@ -1,0 +1,138 @@
+/* src/components/ProductsFilters.css */
+.products-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #cbd5e0;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filters-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.filters-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.products-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.total-count {
+  font-weight: 700;
+  color: #1a202c;
+  font-size: 1rem;
+}
+
+.showing-range {
+  font-size: 0.875rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.items-per-page {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #2d3748;
+}
+
+.items-per-page label {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.items-select {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.875rem;
+  color: #2d3748;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.items-select:hover:not(:disabled) {
+  border-color: #a0aec0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.items-select:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.items-select:disabled {
+  background: #f7fafc;
+  color: #a0aec0;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+.page-info {
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.875rem;
+  color: #4a5568;
+  font-weight: 600;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .products-filters {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .filters-left,
+  .filters-right {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .filters-right {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .products-summary {
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-filters {
+    padding: 0.75rem;
+  }
+  
+  .items-per-page {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .items-select {
+    min-width: 140px;
+  }
+}

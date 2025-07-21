@@ -1,7 +1,8 @@
-// src/components/CreditCardModal.js
+// src/components/CreditCardModal.js - CON DEPARTAMENTOS Y CIUDADES
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setCurrentStep } from '../store/index';
+import { colombiaLocationsService } from '../services/colombiaLocations';
 import './CreditCardModal.css';
 
 // Utilidades para validación de tarjetas
@@ -66,11 +67,62 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
     address: '',
     city: '',
     department: '',
+    departmentId: '', // ✅ NUEVO: ID del departamento seleccionado
     postalCode: ''
   });
   
   const [errors, setErrors] = useState({});
   const [cardType, setCardType] = useState('');
+  
+  // ✅ NUEVO: Estados para departamentos y ciudades
+  const [departments, setDepartments] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+
+  // ✅ NUEVO: Cargar departamentos cuando se abre el modal
+  useEffect(() => {
+    if (isOpen && departments.length === 0) {
+      loadDepartments();
+    }
+  }, [isOpen]);
+
+  // ✅ NUEVO: Función para cargar departamentos
+  const loadDepartments = async () => {
+    setLoadingDepartments(true);
+    try {
+      const departmentsList = await colombiaLocationsService.getDepartments();
+      setDepartments(departmentsList);
+      console.log('✅ Departamentos cargados:', departmentsList.length);
+    } catch (error) {
+      console.error('❌ Error cargando departamentos:', error);
+      // En caso de error, usar fallback
+      setDepartments(colombiaLocationsService.getFallbackDepartments());
+    } finally {
+      setLoadingDepartments(false);
+    }
+  };
+
+  // ✅ NUEVO: Función para cargar ciudades por departamento
+  const loadCitiesByDepartment = async (departmentId) => {
+    if (!departmentId) {
+      setCities([]);
+      return;
+    }
+
+    setLoadingCities(true);
+    try {
+      const citiesList = await colombiaLocationsService.getCitiesByDepartment(departmentId);
+      setCities(citiesList);
+      console.log(`✅ Ciudades cargadas para departamento ${departmentId}:`, citiesList.length);
+    } catch (error) {
+      console.error(`❌ Error cargando ciudades para departamento ${departmentId}:`, error);
+      // En caso de error, usar fallback
+      setCities(colombiaLocationsService.getFallbackCities(departmentId));
+    } finally {
+      setLoadingCities(false);
+    }
+  };
 
   // Detectar tipo de tarjeta cuando cambia el número
   useEffect(() => {
@@ -85,6 +137,11 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
         const savedData = JSON.parse(savedPaymentData);
         console.log('🔄 Hidratando formulario con datos guardados:', savedData);
         setFormData(savedData);
+        
+        // Si hay departamento guardado, cargar sus ciudades
+        if (savedData.departmentId) {
+          loadCitiesByDepartment(savedData.departmentId);
+        }
       }
     }
   }, [isOpen]);
@@ -103,32 +160,81 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
       processedValue = value.replace(/\D/g, '').slice(0, 4);
     }
     
-    // Formatear teléfono para Colombia +57 XXX XXX XXXX
+    // ✅ NUEVO: Manejar cambio de departamento
+    if (field === 'department') {
+      const selectedDepartment = departments.find(dept => dept.id === parseInt(value));
+      if (selectedDepartment) {
+        setFormData(prev => ({ 
+          ...prev, 
+          department: selectedDepartment.name,
+          departmentId: selectedDepartment.id,
+          city: '', // Limpiar ciudad cuando cambia departamento
+        }));
+        
+        // Cargar ciudades del nuevo departamento
+        loadCitiesByDepartment(selectedDepartment.id);
+        
+        // Limpiar error si existe
+        if (errors.department) {
+          setErrors(prev => ({ ...prev, department: '' }));
+        }
+        return;
+      }
+    }
+    
+    // ✅ NUEVO: Manejar cambio de ciudad
+    if (field === 'city') {
+      const selectedCity = cities.find(city => city.id === parseInt(value));
+      if (selectedCity) {
+        setFormData(prev => ({ 
+          ...prev, 
+          city: selectedCity.name
+        }));
+        
+        // Limpiar error si existe
+        if (errors.city) {
+          setErrors(prev => ({ ...prev, city: '' }));
+        }
+        return;
+      }
+    }
+    
+    // ✅ CORREGIDO: Formatear teléfono para Colombia +57 XXX XXX XXXX
     if (field === 'phone') {
+      // Si el usuario está borrando todo, permitir campo vacío
+      if (value === '' || value === '+' || value === '+5' || value === '+57' || value === '+57 ') {
+        processedValue = '';
+        setFormData(prev => ({ ...prev, [field]: processedValue }));
+        return;
+      }
+      
       // Quitar todo excepto números
       let cleanNumber = value.replace(/\D/g, '');
       
-      // Si empieza con 57, añadir +
+      // Si empieza con 57, quitarlo (lo agregamos automáticamente)
       if (cleanNumber.startsWith('57') && cleanNumber.length > 2) {
-        cleanNumber = cleanNumber.substring(2); // Quitar el 57
+        cleanNumber = cleanNumber.substring(2);
       }
       
       // Limitar a 10 dígitos (número celular colombiano)
       cleanNumber = cleanNumber.slice(0, 10);
       
-      // Formatear como +57 XXX XXX XXXX
-      if (cleanNumber.length >= 3) {
-        const part1 = cleanNumber.slice(0, 3);
-        const part2 = cleanNumber.slice(3, 6);
-        const part3 = cleanNumber.slice(6, 10);
-        
-        processedValue = `+57 ${part1}`;
-        if (part2) processedValue += ` ${part2}`;
-        if (part3) processedValue += ` ${part3}`;
-      } else if (cleanNumber.length > 0) {
-        processedValue = `+57 ${cleanNumber}`;
+      // Si no hay números, dejar vacío
+      if (cleanNumber.length === 0) {
+        processedValue = '';
       } else {
-        processedValue = '+57 ';
+        // Formatear como +57 XXX XXX XXXX
+        if (cleanNumber.length >= 3) {
+          const part1 = cleanNumber.slice(0, 3);
+          const part2 = cleanNumber.slice(3, 6);
+          const part3 = cleanNumber.slice(6, 10);
+          
+          processedValue = `+57 ${part1}`;
+          if (part2) processedValue += ` ${part2}`;
+          if (part3) processedValue += ` ${part3}`;
+        } else {
+          processedValue = `+57 ${cleanNumber}`;
+        }
       }
     }
     
@@ -148,8 +254,8 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
       newErrors.cardNumber = 'Número de tarjeta inválido';
     }
     
-    if (!formData.holderName || formData.holderName.trim().length < 2) {
-      newErrors.holderName = 'Nombre del titular requerido';
+    if (!formData.holderName || formData.holderName.trim().length < 5) {
+      newErrors.holderName = 'Nombre del titular debe tener mínimo 5 caracteres';
     }
     
     if (!formData.expiryMonth || formData.expiryMonth < 1 || formData.expiryMonth > 12) {
@@ -165,23 +271,28 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
       newErrors.cvc = 'CVC inválido';
     }
     
-    // Validar datos del cliente
-    if (!formData.customerName || formData.customerName.trim().length < 2) {
-      newErrors.customerName = 'Nombre requerido';
+    if (!formData.installments || formData.installments < 1) {
+      newErrors.installments = 'Seleccione número de cuotas';
+    }
+    
+    if (!formData.customerName || formData.customerName.trim().length < 5) {
+      newErrors.customerName = 'Nombre completo debe tener mínimo 5 caracteres';
     }
     
     if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email inválido';
     }
     
-    // Validar teléfono formato +57 XXX XXX XXXX
-    if (!formData.phone || !/^\+57 \d{3} \d{3} \d{4}$/.test(formData.phone)) {
+    // ✅ MEJORADO: Validar teléfono más flexible
+    if (!formData.phone) {
+      newErrors.phone = 'Teléfono es requerido';
+    } else if (!/^\+57 \d{3} \d{3} \d{4}$/.test(formData.phone)) {
       newErrors.phone = 'Teléfono debe ser formato +57 XXX XXX XXXX';
     }
     
     // Validar datos de entrega
     if (!formData.address || formData.address.trim().length < 5) {
-      newErrors.address = 'Dirección requerida';
+      newErrors.address = 'Dirección debe tener mínimo 5 caracteres';
     }
     
     if (!formData.city || formData.city.trim().length < 2) {
@@ -196,7 +307,7 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
     return Object.keys(newErrors).length === 0;
   };
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
@@ -227,6 +338,14 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
         console.error('❌ CreditCardModal: Error guardando datos:', error);
         alert('Error guardando los datos. Por favor intente de nuevo.');
       }
+    }
+  };
+
+  // ✅ NUEVO: Función para limpiar el teléfono completamente
+  const handlePhoneClear = () => {
+    setFormData(prev => ({ ...prev, phone: '' }));
+    if (errors.phone) {
+      setErrors(prev => ({ ...prev, phone: '' }));
     }
   };
 
@@ -267,10 +386,11 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
             
             <input
               type="text"
-              placeholder="Nombre del titular"
+              placeholder="Nombre del titular (mínimo 5 caracteres)"
               value={formData.holderName}
               onChange={(e) => handleInputChange('holderName', e.target.value)}
               className={`form-input ${errors.holderName ? 'error' : ''}`}
+              minLength={3}
             />
             {errors.holderName && <span className="error-text">{errors.holderName}</span>}
             
@@ -315,6 +435,24 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
                 />
                 {errors.cvc && <span className="error-text">{errors.cvc}</span>}
               </div>
+              
+              <div className="form-col">
+                <select
+                  value={formData.installments}
+                  onChange={(e) => handleInputChange('installments', e.target.value)}
+                  className={`form-input ${errors.installments ? 'error' : ''}`}
+                >
+                  <option value={1}>1 cuota (contado)</option>
+                  <option value={3}>3 cuotas</option>
+                  <option value={6}>6 cuotas</option>
+                  <option value={9}>9 cuotas</option>
+                  <option value={12}>12 cuotas</option>
+                  <option value={18}>18 cuotas</option>
+                  <option value={24}>24 cuotas</option>
+                  <option value={36}>36 cuotas</option>
+                </select>
+                {errors.installments && <span className="error-text">{errors.installments}</span>}
+              </div>
             </div>
           </div>
 
@@ -324,10 +462,11 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
             
             <input
               type="text"
-              placeholder="Nombre completo"
+              placeholder="Nombre completo (mínimo  5 caracteres)"
               value={formData.customerName}
               onChange={(e) => handleInputChange('customerName', e.target.value)}
               className={`form-input ${errors.customerName ? 'error' : ''}`}
+              minLength={5}
             />
             {errors.customerName && <span className="error-text">{errors.customerName}</span>}
             
@@ -340,13 +479,29 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
             />
             {errors.email && <span className="error-text">{errors.email}</span>}
             
-            <input
-              type="tel"
-              placeholder="+57 300 123 4567"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              className={`form-input ${errors.phone ? 'error' : ''}`}
-            />
+            {/* ✅ MEJORADO: Input de teléfono con botón de limpiar */}
+            <div className="phone-input-container">
+              <input
+                type="tel"
+                placeholder="Escriba su número (ej: 3001234567)"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                className={`form-input ${errors.phone ? 'error' : ''}`}
+              />
+              {formData.phone && (
+                <button 
+                  type="button"
+                  onClick={handlePhoneClear}
+                  className="phone-clear-btn"
+                  title="Limpiar teléfono"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <div className="phone-help-text">
+              Formato automático: +57 XXX XXX XXXX
+            </div>
             {errors.phone && <span className="error-text">{errors.phone}</span>}
           </div>
 
@@ -356,34 +511,56 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
             
             <input
               type="text"
-              placeholder="Dirección completa"
+              placeholder="Dirección completa (mínimo 5 caracteres)"
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
               className={`form-input ${errors.address ? 'error' : ''}`}
+              minLength={5}
             />
             {errors.address && <span className="error-text">{errors.address}</span>}
             
             <div className="form-row">
               <div className="form-col">
-                <input
-                  type="text"
-                  placeholder="Ciudad"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                  className={`form-input ${errors.city ? 'error' : ''}`}
-                />
-                {errors.city && <span className="error-text">{errors.city}</span>}
+                <select
+                  value={formData.departmentId || ''}
+                  onChange={(e) => handleInputChange('department', e.target.value)}
+                  className={`form-input ${errors.department ? 'error' : ''}`}
+                  disabled={loadingDepartments}
+                >
+                  <option value="">
+                    {loadingDepartments ? 'Cargando departamentos...' : 'Seleccionar departamento'}
+                  </option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.department && <span className="error-text">{errors.department}</span>}
               </div>
               
               <div className="form-col">
-                <input
-                  type="text"
-                  placeholder="Departamento"
-                  value={formData.department}
-                  onChange={(e) => handleInputChange('department', e.target.value)}
-                  className={`form-input ${errors.department ? 'error' : ''}`}
-                />
-                {errors.department && <span className="error-text">{errors.department}</span>}
+                <select
+                  value={cities.find(city => city.name === formData.city)?.id || ''}
+                  onChange={(e) => handleInputChange('city', e.target.value)}
+                  className={`form-input ${errors.city ? 'error' : ''}`}
+                  disabled={loadingCities || !formData.departmentId}
+                >
+                  <option value="">
+                    {!formData.departmentId 
+                      ? 'Primero seleccione departamento'
+                      : loadingCities 
+                        ? 'Cargando ciudades...' 
+                        : 'Seleccionar ciudad'
+                    }
+                  </option>
+                  {cities.map(city => (
+                    <option key={city.id} value={city.id}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.city && <span className="error-text">{errors.city}</span>}
               </div>
             </div>
             

@@ -339,3 +339,267 @@
   }
 }
 
+.products-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.products-header h2 {
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.step-description {
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Progress banner mejorado */
+.progress-banner {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #1e40af;
+  font-weight: 500;
+}
+
+.progress-banner button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.progress-banner button:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Grid de productos optimizado */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1rem; /* Reducido para dar espacio a la paginación */
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  min-height: 400px; /* Altura mínima para evitar saltos */
+}
+
+/* Error de página específica */
+.page-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  text-align: center;
+  color: #dc2626;
+}
+
+.page-error button {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-left: 1rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.page-error button:hover {
+  background: #b91c1c;
+}
+
+/* Breadcrumb mejorado con info de página */
+.breadcrumb-item {
+  font-size: 0.9rem;
+}
+
+/* Loading overlay para cambios de página */
+.products-container {
+  position: relative;
+  min-height: 600px; /* Altura mínima para evitar saltos de layout */
+}
+
+.products-container.loading::after {
+  content: '🔄 Cargando productos...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #3b82f6;
+  z-index: 10;
+  border: 2px solid #e2e8f0;
+}
+
+/* Responsive design para productos */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 1rem;
+    min-height: 300px;
+  }
+  
+  .products-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .step-description {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+  
+  .progress-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .products-container {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    padding: 0 0.5rem;
+    gap: 0.75rem;
+  }
+  
+  .products-container {
+    min-height: 350px;
+  }
+} 
+.progress-banner button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.progress-banner button:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Grid de productos optimizado */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Error de página específica */
+.page-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  text-align: center;
+  color: #dc2626;
+}
+
+.page-error button {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin-left: 1rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.page-error button:hover {
+  background: #b91c1c;
+}
+
+/* Breadcrumb mejorado con info de página */
+.breadcrumb-item {
+  font-size: 0.9rem;
+}
+
+/* Loading overlay para cambios de página */
+.products-container.loading {
+  position: relative;
+}
+
+.products-container.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Responsive design para productos */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+  
+  .products-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .step-description {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+  
+  .progress-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .products-meta {
+    margin: 0.75rem;
+    padding: 0.5rem 
+    }
+    }
