@@ -4,8 +4,7 @@ import { setCurrentStep } from "../store/index";
 import { formatPrice } from "../services/api";
 import "./BackdropSummary.css";
 import { apiService } from "../services/api";
-import { PaymentServiceAdapter} from "../services/payment.adapter";
-import { PaymentProviderService} from "../services/payment-service";
+import paymentAdapter from "../services/payment.adapter";
 
 function BackdropSummary({ isOpen, onClose }) {
   const dispatch = useDispatch();
@@ -73,6 +72,7 @@ function BackdropSummary({ isOpen, onClose }) {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, [isOpen]);
+
   const calculateAmounts = () => {
     if (!selectedProduct)
       return { productAmount: 0, baseFee: 0, deliveryFee: 0, total: 0 };
@@ -87,6 +87,7 @@ function BackdropSummary({ isOpen, onClose }) {
 
   const { productAmount, baseFee, deliveryFee, total } = calculateAmounts();
 
+  // Esta función ahora solo crea la transacción en tu backend, sin llamar a Wompi
   const createTransaction = async () => {
     try {
       const transactionData = {
@@ -154,7 +155,8 @@ function BackdropSummary({ isOpen, onClose }) {
     }
   };
 
-  const processPayment = async (transactionId) => {
+  // Nueva función que procesa el pago directamente con el proveedor externo desde el frontend
+  const processPaymentWithExternalProvider = async (transactionId) => {
     if (!transactionId) {
       throw new Error("ID de transacción no válido");
     }
@@ -179,7 +181,12 @@ function BackdropSummary({ isOpen, onClose }) {
         throw new Error(`Año inválido: ${year}. Debe estar entre 25-99`);
       }
 
-      const paymentPayload = {
+      // Preparar request para el adapter del proveedor externo
+      const paymentRequest = {
+        transactionId: transactionId,
+        amount: total,
+        currency: "COP",
+        customerEmail: paymentData.email,
         cardNumber: String(paymentData.cardNumber),
         cardCvc: String(paymentData.cvc || paymentData.cardCvc),
         cardExpMonth: month,
@@ -187,58 +194,113 @@ function BackdropSummary({ isOpen, onClose }) {
         cardHolder: String(paymentData.holderName || paymentData.cardHolder),
         installments: parseInt(paymentData.installments) || 1,
       };
-      console.log("📤 Payload validado:", {
-        cardNumber: "**** **** **** " + paymentPayload.cardNumber.slice(-4),
+
+      console.log("📤 Procesando pago con proveedor externo directamente desde frontend:", {
+        cardNumber: "**** **** **** " + paymentRequest.cardNumber.slice(-4),
         cardCvc: "***",
-        cardExpMonth: paymentPayload.cardExpMonth,
-        cardExpYear: paymentPayload.cardExpYear,
-        cardHolder: paymentPayload.cardHolder,
+        cardExpMonth: paymentRequest.cardExpMonth,
+        cardExpYear: paymentRequest.cardExpYear,
+        cardHolder: paymentRequest.cardHolder,
+        amount: paymentRequest.amount,
+        transactionId: transactionId
       });
 
-  const result = await apiService.processPayment(
-        transactionId,
-        paymentPayload
-      );
-      const serviceProvider = PaymentProviderService
-      const resultProviderRequest = await new PaymentServiceAdapter(serviceProvider).processPayment(paymentPayload);
+      // Procesar pago con proveedor externo desde el frontend
+      const result = await paymentAdapter.processPayment(paymentRequest);
+      
+      console.log("✅ Respuesta del proveedor externo (frontend):", result);
 
-      console.log("✅ Respuesta del proveedor de pagos:", resultProviderRequest);
+      // Actualizar la transacción en el backend con el resultado
+      await updateTransactionWithPaymentResult(transactionId, result);
+
+      return result;
     } catch (error) {
-      console.error("❌ Error en processPayment:", error);
+      console.error("❌ Error en processPaymentWithExternalProvider:", error);
       throw error;
     }
   };
 
-  const checkPaymentStatus = async (transactionId) => {
-    if (!transactionId) {
-      throw new Error("ID de transacción no válido para consultar estado");
+  // Función para actualizar el backend usando el endpoint CORRECTO
+  const updateTransactionWithPaymentResult = async (transactionId, paymentResult) => {
+    try {
+      console.log("📤 Actualizando transacción en backend con resultado del proveedor externo...");
+      
+      const updateData = {
+        providerTransactionId: paymentResult.providerTransactionId,
+        providerStatus: paymentResult.status,
+        providerMessage: paymentResult.message,
+        providerReference: paymentResult.reference,
+        providerProcessedAt: paymentResult.processedAt.toISOString(),
+        amountInCents: paymentResult.amount ? Math.round(paymentResult.amount * 100) : undefined,
+        currency: paymentResult.currency || 'COP',
+      };
+
+      console.log("📤 Payload a enviar:", updateData);
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/payment/${transactionId}/update-with-provider-result`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+
+      console.log("📥 Respuesta del servidor:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ 
+          error: 'No se pudo parsear la respuesta de error' 
+        }));
+        console.warn("⚠️ No se pudo actualizar la transacción en el backend:", errorData);
+        // No lanzamos error aquí porque el pago ya se procesó con el proveedor
+      } else {
+        const result = await response.json();
+        console.log("✅ Transacción actualizada en backend (incluye stock automáticamente):", result);
+        
+        // Log adicional si el stock se actualizó
+        if (result.data?.stockUpdated) {
+          console.log("📦 Stock del producto actualizado automáticamente");
+        }
+      }
+    } catch (error) {
+      console.warn("⚠️ Error actualizando backend (pago ya procesado):", error);
+      // No lanzamos error porque el pago con el proveedor externo ya se completó
+    }
+  };
+
+  // Función para consultar el estado directamente desde el proveedor externo (sandbox)
+  const checkPaymentStatusFromProvider = async (providerTransactionId) => {
+    if (!providerTransactionId) {
+      throw new Error("ID de transacción del proveedor no válido");
     }
 
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/payment/${transactionId}/status`
-      );
-      if (!response.ok) {
-        throw new Error(
-          `Error consultando estado del pago: ${response.status}`
-        );
-      }
-
-      const result = await response.json();
-      console.log("🔍 Estado del pago consultado:", result);
-      return result;
+      console.log("🔍 Consultando estado directamente desde proveedor externo:", providerTransactionId);
+      
+      // Usar el servicio externo para consultar el estado directamente
+      const providerResponse = await paymentAdapter.getPaymentStatus(providerTransactionId);
+      
+      console.log("📥 Estado desde proveedor externo:", providerResponse);
+      return providerResponse;
     } catch (error) {
-      console.error("❌ Error en checkPaymentStatus:", error);
+      console.error("❌ Error consultando estado desde proveedor:", error);
       throw error;
     }
   };
 
-  const pollPaymentStatus = async (transactionId) => {
-    if (!transactionId) {
-      throw new Error("ID de transacción no válido para hacer polling");
+  const pollPaymentStatusFromProvider = async (providerTransactionId) => {
+    if (!providerTransactionId) {
+      throw new Error("ID de transacción del proveedor no válido para hacer polling");
     }
 
-    const maxAttempts = 30;
+    const maxAttempts = 15; // Reducimos intentos porque consultamos directo al proveedor
     let attempts = 0;
 
     return new Promise((resolve, reject) => {
@@ -247,42 +309,29 @@ function BackdropSummary({ isOpen, onClose }) {
 
         try {
           console.log(
-            `🔄 Consultando estado del pago... Intento ${attempts} para transacción ${transactionId}`
+            `🔄 Consultando estado del proveedor... Intento ${attempts} para transacción ${providerTransactionId}`
           );
-          const statusResponse = await checkPaymentStatus(transactionId);
+          
+          const statusResponse = await checkPaymentStatusFromProvider(providerTransactionId);
 
-          const transactionStatus =
-            statusResponse.data?.transaction?.status || statusResponse.status;
-          const paymentStatus =
-            statusResponse.data?.paymentStatus?.currentStatus;
-          const providerStatus =
-            statusResponse.data?.paymentStatus?.providerInfo?.status;
-
-          console.log("🔍 Estados encontrados:", {
-            transactionStatus,
-            paymentStatus,
-            providerStatus,
+          console.log("🔍 Estado del proveedor:", {
+            status: statusResponse.status,
+            success: statusResponse.success,
           });
 
           const finalStates = [
             "APPROVED",
-            "DECLINED",
-            "COMPLETED",
+            "DECLINED", 
+            "ERROR",
+            "VOIDED",
             "FAILED",
-            "REJECTED",
+            "CANCELLED"
           ];
 
-          const isFinished =
-            finalStates.includes(transactionStatus) ||
-            finalStates.includes(paymentStatus) ||
-            finalStates.includes(providerStatus);
+          const isFinished = finalStates.includes(statusResponse.status);
 
           if (isFinished) {
-            console.log("✅ Pago finalizado con estado:", {
-              transactionStatus,
-              paymentStatus,
-              providerStatus,
-            });
+            console.log("✅ Estado final obtenido del proveedor:", statusResponse.status);
             clearInterval(interval);
             resolve(statusResponse);
             return;
@@ -290,17 +339,17 @@ function BackdropSummary({ isOpen, onClose }) {
 
           if (attempts >= maxAttempts) {
             clearInterval(interval);
-            reject(new Error("Timeout esperando respuesta del pago"));
+            reject(new Error("Timeout esperando respuesta del proveedor de pagos"));
             return;
           }
         } catch (error) {
-          console.error("Error en polling:", error);
+          console.error("Error en polling del proveedor:", error);
           if (attempts >= maxAttempts) {
             clearInterval(interval);
             reject(error);
           }
         }
-      }, 2000);
+      }, 3000); // Cada 3 segundos
     });
   };
 
@@ -335,46 +384,48 @@ function BackdropSummary({ isOpen, onClose }) {
       setCurrentTransactionId(transactionId);
       console.log("✅ Transacción creada con ID:", transactionId);
 
-      setPaymentStep("Procesando con Wompi...");
+      setPaymentStep("Procesando con proveedor externo...");
       console.log(
-        "🔄 Procesando pago con Wompi para transacción:",
+        "🔄 Procesando pago con proveedor externo para transacción:",
         transactionId
       );
 
-      const paymentResponse = await processPayment(transactionId);
-      console.log("✅ Pago enviado a Wompi:", paymentResponse);
+      // Procesar pago directamente con el proveedor externo desde el frontend
+      const paymentResponse = await processPaymentWithExternalProvider(transactionId);
+      console.log("✅ Pago enviado al proveedor externo:", paymentResponse);
 
       setPaymentStep("Verificando estado del pago...");
       console.log(
-        "🔄 Consultando estado del pago para transacción:",
-        transactionId
+        "🔄 Consultando estado del pago directamente desde proveedor...",
+        paymentResponse.providerTransactionId
       );
 
-      const finalStatus = await pollPaymentStatus(transactionId);
-      console.log("✅ Estado final del pago:", finalStatus);
+      // FLUJO CORRECTO: Consultar estado desde el proveedor hasta que NO sea PENDING
+      const finalProviderStatus = await pollPaymentStatusFromProvider(paymentResponse.providerTransactionId);
+      console.log("✅ Estado final desde proveedor:", finalProviderStatus);
 
-      const transactionStatus =
-        finalStatus.data?.transaction?.status || finalStatus.status;
-      const paymentStatus = finalStatus.data?.paymentStatus?.currentStatus;
-      const providerStatus =
-        finalStatus.data?.paymentStatus?.providerInfo?.status;
+      setPaymentStep("Actualizando backend...");
+      console.log("🔄 Actualizando backend con resultado final...");
 
-      const finalState = transactionStatus || paymentStatus || providerStatus;
+      // AHORA SÍ: Actualizar el backend con el resultado final
+      await updateTransactionWithPaymentResult(transactionId, finalProviderStatus);
 
+      // Guardar resultado final
       localStorage.setItem(
         "payment_result",
         JSON.stringify({
           transactionId,
-          status: finalState,
-          finalResponse: finalStatus,
+          status: finalProviderStatus.status,
+          finalResponse: finalProviderStatus,
+          providerResult: finalProviderStatus,
         })
       );
 
       onClose();
-
       setTimeout(() => {
         dispatch(setCurrentStep(4));
       }, 100);
+
     } catch (error) {
       console.error("❌ Error procesando pago:", error);
 
