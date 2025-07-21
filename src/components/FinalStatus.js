@@ -66,7 +66,7 @@ function FinalStatus() {
     }, 500);
 
     return () => clearTimeout(timeout);
-  }, []);
+  }, [paymentResult]);
 
   // Actualizar stock si el pago fue exitoso
   useEffect(() => {
