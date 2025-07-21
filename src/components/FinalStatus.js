@@ -9,7 +9,7 @@ import './FinalStatus.css';
 function FinalStatus() {
   const dispatch = useDispatch();
   const selectedProduct = useSelector(state => state.products.selectedProduct);
-  
+
   const [paymentResult, setPaymentResult] = useState(null);
   const [customerData, setCustomerData] = useState(null);
   const [isUpdatingStock, setIsUpdatingStock] = useState(false);
@@ -19,12 +19,12 @@ function FinalStatus() {
   // Cargar datos al montar el componente
   useEffect(() => {
     console.log('🔍 FinalStatus: Componente montado, cargando datos...');
-    
+
     const loadData = () => {
       // Cargar resultado del pago
       const savedPaymentResult = localStorage.getItem('payment_result');
       console.log('🔍 FinalStatus: payment_result en localStorage:', savedPaymentResult);
-      
+
       if (savedPaymentResult) {
         try {
           const parsedResult = JSON.parse(savedPaymentResult);
@@ -40,7 +40,7 @@ function FinalStatus() {
       // Cargar datos del cliente
       const savedCustomerData = localStorage.getItem('payment_form_data');
       console.log('🔍 FinalStatus: payment_form_data en localStorage:', savedCustomerData ? 'Encontrado' : 'No encontrado');
-      
+
       if (savedCustomerData) {
         try {
           const parsedCustomerData = JSON.parse(savedCustomerData);
@@ -50,13 +50,13 @@ function FinalStatus() {
           console.error('❌ FinalStatus: Error parsing customer data:', error);
         }
       }
-      
+
       setIsLoading(false);
     };
 
     // Cargar datos inmediatamente, pero también dar un momento para que se guarden
     loadData();
-    
+
     // Si no hay datos, intentar de nuevo después de un momento
     const timeout = setTimeout(() => {
       if (!paymentResult) {
@@ -68,18 +68,6 @@ function FinalStatus() {
     return () => clearTimeout(timeout);
   }, [paymentResult]);
 
-  // Actualizar stock si el pago fue exitoso
-  useEffect(() => {
-    const shouldUpdateStock = paymentResult && 
-                             selectedProduct && 
-                             (paymentResult.status === 'COMPLETED' || 
-                              paymentResult.status === 'APPROVED') &&
-                             !stockUpdated;
-
-    if (shouldUpdateStock) {
-      updateStock();
-    }
-  }, [paymentResult, selectedProduct, stockUpdated, updateStock]);
 
   const updateStock = async () => {
     if (!selectedProduct || isUpdatingStock) return;
@@ -87,11 +75,11 @@ function FinalStatus() {
     setIsUpdatingStock(true);
     try {
       const newStock = Math.max(0, selectedProduct.stock - 1);
-      await dispatch(updateProductStock({ 
-        productId: selectedProduct.id, 
-        newStock 
+      await dispatch(updateProductStock({
+        productId: selectedProduct.id,
+        newStock
       })).unwrap();
-      
+
       setStockUpdated(true);
       console.log('✅ Stock actualizado:', { productId: selectedProduct.id, newStock });
     } catch (error) {
@@ -100,6 +88,18 @@ function FinalStatus() {
       setIsUpdatingStock(false);
     }
   };
+  // Actualizar stock si el pago fue exitoso
+  useEffect(() => {
+    const shouldUpdateStock = paymentResult &&
+      selectedProduct &&
+      (paymentResult.status === 'COMPLETED' ||
+        paymentResult.status === 'APPROVED') &&
+      !stockUpdated;
+
+    if (shouldUpdateStock) {
+      updateStock();
+    }
+  }, [paymentResult, selectedProduct, stockUpdated, updateStock]);
 
   const getStatusInfo = () => {
     if (!paymentResult) {
@@ -113,7 +113,7 @@ function FinalStatus() {
     }
 
     const status = paymentResult.status;
-    
+
     switch (status) {
       case 'COMPLETED':
       case 'APPROVED':
@@ -124,7 +124,7 @@ function FinalStatus() {
           type: 'success',
           showDetails: true
         };
-      
+
       case 'DECLINED':
       case 'FAILED':
       case 'REJECTED':
@@ -135,7 +135,7 @@ function FinalStatus() {
           type: 'error',
           showDetails: true
         };
-      
+
       case 'PENDING':
         return {
           icon: '⏳',
@@ -144,7 +144,7 @@ function FinalStatus() {
           type: 'pending',
           showDetails: true
         };
-      
+
       case 'ERROR':
         return {
           icon: '⚠️',
@@ -153,7 +153,7 @@ function FinalStatus() {
           type: 'error',
           showDetails: false
         };
-      
+
       default:
         return {
           icon: '❓',
@@ -205,7 +205,7 @@ function FinalStatus() {
   return (
     <div className="final-status-container">
       <div className="final-status-content">
-        
+
         {/* Header con estado del pago */}
         <div className={`status-header ${statusInfo.type}`}>
           <div className="status-icon">{statusInfo.icon}</div>
@@ -217,13 +217,13 @@ function FinalStatus() {
         {statusInfo.showDetails && paymentResult && (
           <div className="transaction-details">
             <h3>📋 Detalles de la Transacción</h3>
-            
+
             <div className="detail-grid">
               <div className="detail-item">
                 <span className="detail-label">ID de Transacción:</span>
                 <span className="detail-value">#{paymentResult.transactionId}</span>
               </div>
-              
+
               {paymentResult.finalResponse?.data?.transaction?.providerTransactionId && (
                 <div className="detail-item">
                   <span className="detail-label">ID Wompi:</span>
@@ -232,7 +232,7 @@ function FinalStatus() {
                   </span>
                 </div>
               )}
-              
+
               {paymentResult.finalResponse?.data?.transaction?.totalAmount && (
                 <div className="detail-item">
                   <span className="detail-label">Monto Total:</span>
@@ -260,8 +260,8 @@ function FinalStatus() {
           <div className="product-info">
             <h3>📦 Producto</h3>
             <div className="product-summary">
-              <img 
-                src={selectedProduct.imageUrl} 
+              <img
+                src={selectedProduct.imageUrl}
                 alt={selectedProduct.name}
                 className="product-image"
                 onError={(e) => {
@@ -282,7 +282,7 @@ function FinalStatus() {
                 <h4>{selectedProduct.name}</h4>
                 <p>{selectedProduct.description}</p>
                 <span className="product-price">{formatPrice(selectedProduct.price)}</span>
-                
+
                 {/* Mostrar actualización de stock */}
                 {isSuccessful && (
                   <div className="stock-update">
@@ -309,7 +309,7 @@ function FinalStatus() {
               <p><strong>Ciudad:</strong> {customerData.city}, {customerData.department}</p>
               <p><strong>Teléfono:</strong> {customerData.phone}</p>
             </div>
-            
+
             <div className="delivery-timeline">
               <div className="timeline-item active">
                 <span className="timeline-icon">✅</span>
@@ -337,7 +337,7 @@ function FinalStatus() {
             <div className="success-message">
               <h3>🎉 ¡Felicitaciones!</h3>
               <p>
-                Tu pedido ha sido confirmado. Recibirás un email de confirmación 
+                Tu pedido ha sido confirmado. Recibirás un email de confirmación
                 con los detalles de tu compra y el seguimiento del envío.
               </p>
             </div>
@@ -345,7 +345,7 @@ function FinalStatus() {
             <div className="error-message">
               <h3>😔 ¿Qué pasó?</h3>
               <p>
-                No pudimos procesar tu pago. Puedes intentar nuevamente 
+                No pudimos procesar tu pago. Puedes intentar nuevamente
                 o usar un método de pago diferente.
               </p>
             </div>
@@ -353,7 +353,7 @@ function FinalStatus() {
             <div className="pending-message">
               <h3>⏳ Tu pago está en proceso</h3>
               <p>
-                Estamos verificando tu pago. Te notificaremos por email 
+                Estamos verificando tu pago. Te notificaremos por email
                 cuando esté confirmado.
               </p>
             </div>
@@ -362,14 +362,14 @@ function FinalStatus() {
 
         {/* Botones de acción */}
         <div className="action-buttons">
-          <button 
+          <button
             onClick={handleStartOver}
             className="btn-secondary"
           >
             🏪 Volver a la tienda
           </button>
-          
-          <button 
+
+          <button
             onClick={handleContinue}
             className={`btn-primary ${statusInfo.type}`}
           >
@@ -391,7 +391,7 @@ function FinalStatus() {
           {paymentResult?.transactionId && (
             <p>
               <small>
-                Referencia: #{paymentResult.transactionId} - 
+                Referencia: #{paymentResult.transactionId} -
                 Conserva este número para futuras consultas
               </small>
             </p>
