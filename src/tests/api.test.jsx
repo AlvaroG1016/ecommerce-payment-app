@@ -2,10 +2,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import App from './App';
+import App from '../App';
 
 // Mock del apiService para evitar llamadas reales
-jest.mock('./services/api', () => ({
+jest.mock('../services/api', () => ({
   apiService: {
     baseURL: 'http://localhost:3001/api',
     isDevelopment: jest.fn(() => false),
