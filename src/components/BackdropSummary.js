@@ -70,7 +70,7 @@ function BackdropSummary({ isOpen, onClose }) {
       clearTimeout(retryTimeout);
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, [isOpen]); 
+  }, [isOpen, paymentData]); 
   const calculateAmounts = () => {
     if (!selectedProduct)
       return { productAmount: 0, baseFee: 0, deliveryFee: 0, total: 0 };

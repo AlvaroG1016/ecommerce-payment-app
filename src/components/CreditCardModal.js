@@ -144,7 +144,7 @@ function CreditCardModal({ isOpen, onClose, selectedProduct }) {
         }
       }
     }
-  }, [isOpen]);
+  }, [isOpen,departments.length]);
 
   const handleInputChange = (field, value) => {
     let processedValue = value;
