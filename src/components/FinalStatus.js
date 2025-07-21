@@ -66,7 +66,7 @@ function FinalStatus() {
     }, 500);
 
     return () => clearTimeout(timeout);
-  }, [paymentResult]);
+  }, []);
 
 
   const updateStock = async () => {

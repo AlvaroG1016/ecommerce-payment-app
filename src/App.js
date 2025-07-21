@@ -56,19 +56,19 @@ function App() {
       dispatch(setCurrentStep(progress.currentStep));
       console.log("🔄 Progreso restaurado:", progress);
     }
-  }, [dispatch, isProgressValid, progress]);
+  }, [isProgressValid]);
 
   // Sincronizar step con localStorage solo cuando cambie currentStep
   useEffect(() => {
     updateProgress({ currentStep });
-  }, [currentStep, updateProgress]);
+  }, [currentStep]);
 
   // Sincronizar producto seleccionado con localStorage
   useEffect(() => {
     if (selectedProduct) {
       updateProgress({ selectedProduct });
     }
-  }, [selectedProduct, updateProgress]);
+  }, []);
 
   // Abrir Backdrop cuando llegamos al paso 3
   useEffect(() => {
@@ -330,7 +330,7 @@ function App() {
         </div>
       </header>
 
-      <main className="app-main">{renderCurrentStep()}</main>
+    {  <main className="app-main">{renderCurrentStep()}</main>}
 
       {/* Backdrop Summary Component */}
       <BackdropSummary isOpen={isBackdropOpen} onClose={closeBackdrop} />
