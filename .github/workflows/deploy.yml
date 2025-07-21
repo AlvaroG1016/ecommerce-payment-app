@@ -35,13 +35,13 @@ jobs:
     # Paso 3: Eliminar los archivos existentes en el bucket S3
     - name: Delete existing files in S3 bucket
       run: |
-        aws s3 rm s3://react-site-cinemahub-web-ui  --recursive  
+        aws s3 rm s3://ecommerce-paymente-app --recursive  
       # Borra todo lo que está en el bucket
 
     # Paso 4: Subir los archivos generados (por ejemplo, en dist) al bucket S3
     - name: Upload new files to S3
       run: |
-        aws s3 sync ./build/ s3://react-site-cinemahub-web-ui  --delete  # Sincroniza y elimina archivos antiguos si es necesario
+        aws s3 sync ./build/ s3://ecommerce-paymente-app  --delete  # Sincroniza y elimina archivos antiguos si es necesario
 
     # Paso 5: Confirmación de despliegue
     - name: Deployment successful
