@@ -183,7 +183,7 @@ function App() {
         return (
           <div className="products-container">
             <div className="products-header">
-              <h2>🛍️ Selecciona un producto</h2>
+              <h2> Selecciona un producto</h2>
               <p className="step-description">
                 Elige el producto que deseas comprar y procede con el pago
               </p>
@@ -297,7 +297,7 @@ function App() {
   return (
     <div className="App">
       <header className="app-header">
-        <h1>🏪 {config.appName}</h1>
+        <h1> {config.appName}</h1>
 
         {/* Breadcrumbs sutiles como tienda real */}
         <div className="breadcrumb-container">
@@ -306,7 +306,7 @@ function App() {
               currentStep === 1 ? "active" : currentStep > 1 ? "completed" : ""
             }`}
           >
-            🛍️ Productos{" "}
+             Productos{" "}
             {currentStep === 1 &&
               totalPages > 1 &&
               `(${currentPage}/${totalPages})`}

@@ -80,12 +80,19 @@ function BackdropSummary({ isOpen, onClose }) {
     const productAmount = selectedProduct.price;
     const baseFee = selectedProduct.baseFee || 2000;
     const deliveryFee = 5000;
-    const total = productAmount + baseFee + deliveryFee;
 
-    return { productAmount, baseFee, deliveryFee, total };
+    const subtotal = productAmount + baseFee + deliveryFee;
+
+    const iva  = Math.round((productAmount) * 0.19);
+
+
+
+    const total = subtotal + iva;
+
+    return { productAmount, baseFee, deliveryFee, subtotal, iva, total };
   };
 
-  const { productAmount, baseFee, deliveryFee, total } = calculateAmounts();
+  const { productAmount, baseFee, deliveryFee, subtotal, iva, total } = calculateAmounts();
 
   // Esta función ahora solo crea la transacción en tu backend, sin llamar a Wompi
   const createTransaction = async () => {
@@ -573,10 +580,21 @@ function BackdropSummary({ isOpen, onClose }) {
               <span>Producto</span>
               <span>{formatPrice(productAmount)}</span>
             </div>
+            <div className="cost-item cost-subtotal" > 
+              <span>Subtotal</span>
+              <span>{formatPrice(subtotal)}</span>
+            </div>
+
+            <div className="cost-item cost-tax">
+              <span>IVA (19%)</span>
+              <span>{formatPrice(iva)}</span>
+            </div>
+
             <div className="cost-item">
               <span>Fee Base (siempre aplicada)</span>
               <span>{formatPrice(baseFee)}</span>
             </div>
+
             <div className="cost-item">
               <span>Fee de Entrega</span>
               <span>{formatPrice(deliveryFee)}</span>
